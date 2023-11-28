@@ -1,9 +1,8 @@
-
-from django.contrib import admin
 from django.urls import path
 
-from main import views
+from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("process_csv/", views.process_csv, name="process_csv"),
 ]
