@@ -37,7 +37,11 @@ def parse_spreadsheet(spreadsheet):
         if row["Teamname"]:
             team, _ = Team.objects.get_or_create(team_name=row["Teamname"])
 
-        family_member = User.objects.filter(email_address=row["Email"]).exclude(profile_id=user.profile_id).first()
+        family_member = (
+            User.objects.filter(email_address=row["Email"])
+            .exclude(profile_id=user.profile_id)
+            .first()
+        )
 
         if family_member:
             family = family_member.family
@@ -88,37 +92,40 @@ def process_csv(request):
         return JsonResponse({"message": "Invalid file type."})
 
     # parse the spreadsheet
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp_file:
-        tmp_file.write(request.body)
-        tmp_file.seek(0)  # Go back to the beginning of the file
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp_file:
+            tmp_file.write(request.body)
+            tmp_file.seek(0)  # Go back to the beginning of the file
 
-        # Now you can read the file using Pandas
-        df = pd.read_excel(tmp_file.name, engine="openpyxl")
+            # Now you can read the file using Pandas
+            df = pd.read_excel(tmp_file.name, engine="openpyxl")
 
-        missing_cols = check_columns(df)
-        if missing_cols:
-            return JsonResponse({"message": f"Missing columns: {missing_cols}"})
+            missing_cols = check_columns(df)
+            if missing_cols:
+                return JsonResponse({"message": f"Missing columns: {missing_cols}"})
 
-        # Process the DataFrame 'df' as needed
-        (
-            new,
-            existing,
-            errors,
-            new_users,
-            existing_users,
-            error_rows,
-        ) = parse_spreadsheet(df)
+            # Process the DataFrame 'df' as needed
+            (
+                new,
+                existing,
+                errors,
+                new_users,
+                existing_users,
+                error_rows,
+            ) = parse_spreadsheet(df)
 
-    print(f"New {new}, Existing {existing}, Existing users: {existing_users}")
-    return JsonResponse(
-        {
-            "data": {
-                "new": new,
-                "existing": existing,
-                "errors": errors,
-                "new_users": new_users,
-                "existing_users": existing_users,
-                "error_rows": error_rows,
+        print(f"New {new}, Existing {existing}, Existing users: {existing_users}")
+        return JsonResponse(
+            {
+                "data": {
+                    "new": new,
+                    "existing": existing,
+                    "errors": errors,
+                    "new_users": new_users,
+                    "existing_users": existing_users,
+                    "error_rows": error_rows,
+                }
             }
-        }
-    )
+        )
+    except Exception as e:
+        return JsonResponse({"message": f"Error processing file: {e}"})
