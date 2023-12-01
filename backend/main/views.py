@@ -71,8 +71,6 @@ def check_columns(df):
         ["Profile id", "Firstname", "Lastname", "Email", "Parent/Guardian Email"]
     ).difference(df.columns)
 
-
-# Create your views here.
 def index(request):
     return JsonResponse({"message": "Good"})
 

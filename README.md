@@ -7,6 +7,7 @@ docker-compose up
 Then visit http://localhost:3000
 
 ## TO-DO
+- Prints komen pas door als de server hot-reload (denk door docker?). Output wordt ook weergegeven op de frontend.
 - Fix CSRF
 - Fix CORS
 - E2E Testing
