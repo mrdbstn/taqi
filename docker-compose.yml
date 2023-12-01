@@ -1,6 +1,19 @@
-version: '3.8'
 
 services:
+  db:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=dbname
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d dbname -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   nextjs:
     build:
       context: ./frontend
@@ -26,16 +39,7 @@ services:
     environment:
       - DATABASE_URL=postgres://postgres:password@db:5432/dbname
     depends_on:
-      - db
-
-  db:
-    image: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=dbname
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-
+      db:
+        condition: service_healthy
 volumes:
   postgres_data:
